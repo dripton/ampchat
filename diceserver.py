@@ -1,39 +1,28 @@
+import random
+
 from twisted.protocols import amp
 
-class Sum(amp.Command):
-    arguments = [('a', amp.Integer()),
-                 ('b', amp.Integer())]
-    response = [('total', amp.Integer())]
+_rand = random.Random()
+
+class RollDice(amp.Command):
+    arguments = [('sides', amp.Integer())]
+    response = [('result', amp.Integer())]
 
 
-class Divide(amp.Command):
-    arguments = [('numerator', amp.Integer()),
-                 ('denominator', amp.Integer())]
-    response = [('result', amp.Float())]
-    errors = {ZeroDivisionError: 'ZERO_DIVISION'}
-
-
-class Math(amp.AMP):
-    def sum(self, a, b):
-        total = a + b
-        print 'Did a sum: %d + %d = %d' % (a, b, total)
-        return {'total': total}
-    Sum.responder(sum)
-
-    def divide(self, numerator, denominator):
-        result = numerator / denominator
-        print 'Divided: %d / %d = %d' % (numerator, denominator, total)
+class Dice(amp.AMP):
+    def roll(self, sides=6):
+        """Return a random integer from 1 to sides"""
+        result = _rand.randint(1, sides)
         return {'result': result}
-    Divide.responder(divide)
+    RollDice.responder(roll)
 
 
 def main():
     from twisted.internet import reactor
     from twisted.internet.protocol import Factory
     pf = Factory()
-    pf.protocol = Math
+    pf.protocol = Dice
     reactor.listenTCP(1234, pf)
-    print 'started'
     reactor.run()
 
 if __name__ == '__main__':
