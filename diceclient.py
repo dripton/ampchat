@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
