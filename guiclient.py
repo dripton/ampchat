@@ -40,7 +40,7 @@ class GUIClient(gtk.Window):
         self.image.show()
 
     def roll(self, widget, event):
-        host = "127.0.0.1"
+        host = "localhost"
         clientcreator = ClientCreator(reactor, amp.AMP)
         d1 = clientcreator.connectTCP(host, port)
         d1.addCallback(lambda p: p.callRemote(RollDice, sides=6))
@@ -49,7 +49,7 @@ class GUIClient(gtk.Window):
 
     def stop(self, unused):
         reactor.stop()
-        gtk.main_quit()
+
 
 if __name__ == '__main__':
     guiclient = GUIClient()
