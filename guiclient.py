@@ -6,7 +6,6 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 import gtk
-import gtk.glade
 
 from diceserver import RollDice, port
 
@@ -29,7 +28,6 @@ class GUIClient(gtk.Window):
         self.image.show()
         self.vbox.pack_start(self.image)
         self.show()
-        self.protocol = None
 
     def done(self, result):
         self.vbox.remove(self.image)
