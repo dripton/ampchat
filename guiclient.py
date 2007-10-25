@@ -29,22 +29,23 @@ class GUIClient(gtk.Window):
         self.image.show()
         self.vbox.pack_start(self.image)
         self.show()
+        self.protocol = None
+
+    def done(self, result):
+        self.vbox.remove(self.image)
+        filename = "Die%d.png" % result
+        self.image = gtk.Image()
+        self.image.set_from_file(filename)
+        self.vbox.pack_start(self.image)
+        self.image.show()
 
     def roll(self, widget, event):
         host = "127.0.0.1"
-        d1 = ClientCreator(reactor, amp.AMP).connectTCP(
-            host, port).addCallback(
-                lambda p: p.callRemote(RollDice, sides=6)).addCallback(
-                    lambda result: result['result'])
-        def done(result):
-            self.vbox.remove(self.image)
-            filename = "Die%d.png" % result
-            self.image = gtk.Image()
-            self.image.set_from_file(filename)
-            self.vbox.pack_start(self.image)
-            self.image.show()
-
-        d1.addCallback(done)
+        clientcreator = ClientCreator(reactor, amp.AMP)
+        d1 = clientcreator.connectTCP(host, port)
+        d1.addCallback(lambda p: p.callRemote(RollDice, sides=6))
+        d1.addCallback(lambda result_dict: result_dict['result'])
+        d1.addCallback(self.done)
 
     def stop(self, unused):
         reactor.stop()
