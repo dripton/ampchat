@@ -14,21 +14,20 @@ from diceserver import RollDice
 class GUIClient(gtk.Window):
     def __init__(self):
         gtk.Window.__init__(self)
+        self.set_default_size(200, 100)
         self.connect("destroy", self.stop)
         self.vbox = gtk.VBox()
         self.add(self.vbox)
         self.vbox.show()
-        self.event_box = gtk.EventBox()
-        self.image = gtk.Image()
-        self.image.set_from_file("Die1.png")
-        self.image.show()
-        self.event_box.add(self.image)
-        self.vbox.pack_end(self.event_box)
         button = gtk.Button()
         button.set_label("Roll")
         button.connect("button-press-event", self.roll)
         button.show()
-        self.vbox.pack_end(button)
+        self.vbox.pack_start(button)
+        self.image = gtk.Image()
+        self.image.set_size_request(60, 60)
+        self.image.show()
+        self.vbox.pack_start(self.image)
         self.show()
 
     def roll(self, widget, event):
@@ -37,14 +36,12 @@ class GUIClient(gtk.Window):
                 lambda p: p.callRemote(RollDice, sides=6)).addCallback(
                     lambda result: result['result'])
         def done(result):
-            print 'Got roll:', result
-            self.event_box.remove(self.image)
+            self.vbox.remove(self.image)
             filename = "Die%d.png" % result
             self.image = gtk.Image()
             self.image.set_from_file(filename)
-            self.event_box.add(self.image)
+            self.vbox.pack_start(self.image)
             self.image.show()
-            self.event_box.show()
 
         d1.addCallback(done)
 
