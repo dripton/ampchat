@@ -21,7 +21,7 @@ class GUIClient(gtk.Window):
         self.vbox.show()
         button = gtk.Button()
         button.set_label("Roll")
-        button.connect("button-press-event", self.roll)
+        button.connect("clicked", self.roll)
         button.show()
         self.vbox.pack_start(button)
         self.image = gtk.Image()
@@ -45,7 +45,7 @@ class GUIClient(gtk.Window):
         d1.addCallback(lambda result_dict: result_dict['result'])
         d1.addCallback(self.done)
 
-    def roll(self, widget, event):
+    def roll(self, widget):
         if self.protocol is None:
             clientcreator = ClientCreator(reactor, amp.AMP)
             d1 = clientcreator.connectTCP(host, port)
