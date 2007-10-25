@@ -4,7 +4,10 @@ import random
 
 from twisted.protocols import amp
 
+port = 1234
+
 _rand = random.Random()
+
 
 class RollDice(amp.Command):
     arguments = [('sides', amp.Integer())]
@@ -24,7 +27,7 @@ def main():
     from twisted.internet.protocol import Factory
     pf = Factory()
     pf.protocol = Dice
-    reactor.listenTCP(1234, pf)
+    reactor.listenTCP(port, pf)
     reactor.run()
 
 if __name__ == '__main__':

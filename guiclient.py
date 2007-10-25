@@ -8,7 +8,7 @@ from twisted.protocols import amp
 import gtk
 import gtk.glade
 
-from diceserver import RollDice
+from diceserver import RollDice, port
 
 
 class GUIClient(gtk.Window):
@@ -31,8 +31,9 @@ class GUIClient(gtk.Window):
         self.show()
 
     def roll(self, widget, event):
+        host = "127.0.0.1"
         d1 = ClientCreator(reactor, amp.AMP).connectTCP(
-            '127.0.0.1', 1234).addCallback(
+            host, port).addCallback(
                 lambda p: p.callRemote(RollDice, sides=6)).addCallback(
                     lambda result: result['result'])
         def done(result):
