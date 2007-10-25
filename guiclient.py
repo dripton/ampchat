@@ -37,13 +37,16 @@ class GUIClient(gtk.Window):
         self.vbox.pack_start(self.image)
         self.image.show()
 
+    def connect_finished(self, protocol):
+        d1 = protocol.callRemote(RollDice, sides=6)
+        d1.addCallback(lambda result_dict: result_dict['result'])
+        d1.addCallback(self.done)
+
     def roll(self, widget, event):
         host = "localhost"
         clientcreator = ClientCreator(reactor, amp.AMP)
         d1 = clientcreator.connectTCP(host, port)
-        d1.addCallback(lambda p: p.callRemote(RollDice, sides=6))
-        d1.addCallback(lambda result_dict: result_dict['result'])
-        d1.addCallback(self.done)
+        d1.addCallback(self.connect_finished)
 
     def stop(self, unused):
         reactor.stop()
