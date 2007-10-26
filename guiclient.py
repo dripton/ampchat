@@ -16,6 +16,9 @@ class GUIClient(gtk.Window):
         gtk.Window.__init__(self)
         self.set_default_size(200, 100)
         self.connect("destroy", self.stop)
+        self.set_icon_from_file("Die6.png")
+        self.set_title("AMP Die Roller")
+
         self.vbox = gtk.VBox()
         self.add(self.vbox)
         self.vbox.show()
