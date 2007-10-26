@@ -9,7 +9,7 @@ import gtk
 
 from diceserver import RollDice, port
 
-host = "localhost"
+default_host = "localhost"
 
 class GUIClient(gtk.Window):
     def __init__(self):
@@ -19,17 +19,47 @@ class GUIClient(gtk.Window):
         self.vbox = gtk.VBox()
         self.add(self.vbox)
         self.vbox.show()
+
+        hbox1 = gtk.HBox()
+        hbox1.show()
+        self.vbox.pack_start(hbox1)
+        server_label = gtk.Label("Server")
+        server_label.show()
+        hbox1.pack_start(server_label)
+        self.hostname_entry = gtk.combo_box_entry_new_text()
+        self.hostname_entry.append_text(default_host)
+        self.hostname_entry.set_active(0)
+        self.hostname_entry.show()
+        hbox1.pack_start(self.hostname_entry)
+
+        hbox2 = gtk.HBox()
+        hbox2.show()
+        self.vbox.pack_start(hbox2)
+        port_label = gtk.Label("Port")
+        port_label.show()
+        hbox2.pack_start(port_label)
+        self.port_entry = gtk.combo_box_entry_new_text()
+        self.port_entry.append_text(str(port))
+        self.port_entry.set_active(0)
+        self.port_entry.show()
+        hbox2.pack_start(self.port_entry)
+
         button = gtk.Button()
         button.set_label("Roll")
         button.connect("clicked", self.roll)
         button.show()
         self.vbox.pack_start(button)
+
         self.image = gtk.Image()
         self.image.set_size_request(60, 60)
         self.image.show()
         self.vbox.pack_start(self.image)
+
         self.show()
+
         self.protocol = None
+        self.host = None
+        self.port = None
 
     def done(self, result):
         self.vbox.remove(self.image)
@@ -46,9 +76,20 @@ class GUIClient(gtk.Window):
         d1.addCallback(self.done)
 
     def roll(self, widget):
-        if self.protocol is None:
+        host = self.hostname_entry.child.get_text()
+        port_str = self.port_entry.child.get_text()
+        try:
+            port = int(port_str)
+        except ValueError:
+            self.port = None
+            self.port_entry.child.set_text("")
+            return
+        if self.protocol is None or host != self.host or port != self.port:
+            print "new connection"
+            self.host = host
+            self.port = port
             clientcreator = ClientCreator(reactor, amp.AMP)
-            d1 = clientcreator.connectTCP(host, port)
+            d1 = clientcreator.connectTCP(self.host, self.port)
             d1.addCallback(self.connect_finished)
         else:
             self.connect_finished(self.protocol)
