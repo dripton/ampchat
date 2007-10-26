@@ -14,16 +14,17 @@ class Options(usage.Options):
         optParameters = [
             ["host", "h", "localhost", "server hostname"],
             ["port", "p", default_port, "server port"],
+            ["sides", "s", 6, "number of sides"],
         ]
 
 def done(result):
     print 'Got roll:', result
     reactor.stop()
 
-def roll_die(host, port):
+def roll_die(host, port, sides):
     clientcreator = ClientCreator(reactor, amp.AMP)
     d1 = clientcreator.connectTCP(host, port)
-    d1.addCallback(lambda p: p.callRemote(RollDice, sides=6))
+    d1.addCallback(lambda p: p.callRemote(RollDice, sides=sides))
     d1.addCallback(lambda result: result['result'])
     d1.addCallback(done)
     d1.addErrback(failure)
@@ -43,5 +44,6 @@ if __name__ == '__main__':
 
     host = options["host"]
     port = int(options["port"])
-    roll_die(host, port)
+    sides = int(options["sides"])
+    roll_die(host, port, sides)
     reactor.run()
