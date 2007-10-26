@@ -7,11 +7,12 @@ from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 import gtk
 
-from diceserver import RollDice, default_port
+from chatserver import RollDice, default_port
 
 default_host = "localhost"
 
-class GUIClient(gtk.Window):
+
+class ChatClient(gtk.Window):
     def __init__(self):
         gtk.Window.__init__(self)
         self.set_default_size(200, 100)
@@ -119,5 +120,5 @@ class GUIClient(gtk.Window):
 
 
 if __name__ == '__main__':
-    guiclient = GUIClient()
+    chatclient = ChatClient()
     reactor.run()
