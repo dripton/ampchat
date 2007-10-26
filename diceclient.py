@@ -16,15 +16,15 @@ class Options(usage.Options):
             ["port", "p", port, "server port"],
         ]
 
+def done(result):
+    print 'Got roll:', result
+    reactor.stop()
 
 def roll_die(host, port):
     clientcreator = ClientCreator(reactor, amp.AMP)
     d1 = clientcreator.connectTCP(host, port)
     d1.addCallback(lambda p: p.callRemote(RollDice, sides=6))
     d1.addCallback(lambda result: result['result'])
-    def done(result):
-        print 'Got roll:', result
-        reactor.stop()
     d1.addCallback(done)
     d1.addErrback(failure)
 
