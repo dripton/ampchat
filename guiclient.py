@@ -7,7 +7,7 @@ from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 import gtk
 
-from diceserver import RollDice, port
+from diceserver import RollDice, default_port
 
 default_host = "localhost"
 
@@ -39,7 +39,7 @@ class GUIClient(gtk.Window):
         port_label.show()
         hbox2.pack_start(port_label)
         self.port_entry = gtk.combo_box_entry_new_text()
-        self.port_entry.append_text(str(port))
+        self.port_entry.append_text(str(default_port))
         self.port_entry.set_active(0)
         self.port_entry.show()
         hbox2.pack_start(self.port_entry)

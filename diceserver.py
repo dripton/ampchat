@@ -7,13 +7,13 @@ from twisted.internet import reactor
 from twisted.internet.protocol import Factory
 from twisted.python import usage
 
-port = 1234
+default_port = 1234
 
 _rand = random.Random()
 
 class Options(usage.Options):
     optParameters = [
-        ["port", "p", port, "server port"],
+        ["port", "p", default_port, "server port"],
     ]
 
 class RollDice(amp.Command):

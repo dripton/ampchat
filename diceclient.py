@@ -7,13 +7,13 @@ from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 from twisted.python import usage
 
-from diceserver import RollDice, port
+from diceserver import RollDice, default_port
 
 
 class Options(usage.Options):
         optParameters = [
             ["host", "h", "localhost", "server hostname"],
-            ["port", "p", port, "server port"],
+            ["port", "p", default_port, "server port"],
         ]
 
 def done(result):
