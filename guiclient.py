@@ -85,7 +85,6 @@ class GUIClient(gtk.Window):
             self.port_entry.child.set_text("")
             return
         if self.protocol is None or host != self.host or port != self.port:
-            print "new connection"
             self.host = host
             self.port = port
             clientcreator = ClientCreator(reactor, amp.AMP)
