@@ -3,11 +3,18 @@
 import random
 
 from twisted.protocols import amp
+from twisted.internet import reactor
+from twisted.internet.protocol import Factory
+from twisted.python import usage
 
 port = 1234
 
 _rand = random.Random()
 
+class Options(usage.Options):
+    optParameters = [
+        ["port", "p", port, "server port"],
+    ]
 
 class RollDice(amp.Command):
     arguments = [('sides', amp.Integer())]
@@ -23,8 +30,15 @@ class Dice(amp.AMP):
 
 
 def main():
-    from twisted.internet import reactor
-    from twisted.internet.protocol import Factory
+    options = Options()
+    try:
+        options.parseOptions()
+    except usage.UsageError, err:
+        print "%s: %s" % (sys.argv[0], err)
+        print "%s: Try --help for usage details" % sys.argv[0]
+        sys.exit(1)
+    port = int(options["port"])
+
     pf = Factory()
     pf.protocol = Dice
     reactor.listenTCP(port, pf)
