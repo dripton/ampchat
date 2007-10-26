@@ -40,7 +40,7 @@ class GUIClient(gtk.Window):
         port_label = gtk.Label("Port")
         port_label.show()
         hbox2.pack_start(port_label)
-        self.port_entry = gtk.Entry()
+        self.port_entry = gtk.Entry(5)
         self.port_entry.set_text(str(default_port))
         self.port_entry.show()
         hbox2.pack_start(self.port_entry)
@@ -88,6 +88,15 @@ class GUIClient(gtk.Window):
             messagedialog.destroy()
             self.port = None
             return
+        else:
+            if port < 1 or port > 65535:
+                messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR,
+                  buttons=gtk.BUTTONS_OK, 
+                  message_format="Port must be in range 1-65535")
+                messagedialog.run()
+                messagedialog.destroy()
+                self.port = None
+                return
         if self.protocol is None or host != self.host or port != self.port:
             self.host = host
             self.port = port
