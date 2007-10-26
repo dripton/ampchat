@@ -1,33 +1,62 @@
 #!/usr/bin/env python
 
-import random
-
 from twisted.protocols import amp
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory
 from twisted.python import usage
+from twisted.cred.checkers import FilePasswordDB
+from twisted.cred.portal import Portal
 
-default_port = 1234
+import Realm
 
-_rand = random.Random()
+default_port = 65432
+
 
 class Options(usage.Options):
     optParameters = [
         ["port", "p", default_port, "server port"],
     ]
 
-class RollDice(amp.Command):
-    arguments = [('sides', amp.Integer())]
-    response = [('result', amp.Integer())]
+class LogIn(amp.Command):
+    arguments = [('username', amp.String()), ('password', amp.String())]
+    response = [('ok', amp.Boolean())]
+
+class SendToAll(amp.Command):
+    arguments = [('message', amp.String())]
+    response = [('ok', amp.Boolean())]
+
+class SendToUser(amp.Command):
+    arguments = [('message', amp.String()), 'username', amp.String()]
+    response = [('ok', amp.Boolean())]
 
 
-class Dice(amp.AMP):
-    def roll(self, sides=6):
-        """Return a random integer from 1 to sides"""
-        result = _rand.randint(1, sides)
-        return {'result': result}
-    RollDice.responder(roll)
+class ChatProtocol(amp.AMP):
+    def __init__(self):
+        amp.AMP.__init__(self)
+        self.username_to_peer = {}
 
+    def login(self, username, password):
+        """Attempt to login.
+        
+        Return True if successful, False if not.
+        """
+        # For now we allow anyone to login.
+        self.username_to_peer[username] = self.transport.getPeer()
+        ok = True
+        return {'ok': ok}
+    LogIn.responder(login)
+
+    def send_to_user(self, message, username):
+        peer = self.username_to_peer().get(username)
+        if peer is not None:
+            peer.callRemote("send_message", message)
+            ok = True
+        else:
+            ok = False
+        return {'ok': ok}
+
+class Server(object):
+    pass
 
 def main():
     options = Options()
@@ -39,9 +68,13 @@ def main():
         sys.exit(1)
     port = int(options["port"])
 
-    pf = Factory()
-    pf.protocol = Dice
-    reactor.listenTCP(port, pf)
+    server = Server()
+    realm = Realm.Realm(server)
+    checker = FilePasswordDB("passwd.txt")
+    portal = Portal(realm, [checker])
+    factory = Factory(portal)
+    factory.protocol = ChatProtocol
+    reactor.listenTCP(port, factory)
     reactor.run()
 
 if __name__ == '__main__':
