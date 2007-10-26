@@ -26,9 +26,8 @@ class GUIClient(gtk.Window):
         server_label = gtk.Label("Server")
         server_label.show()
         hbox1.pack_start(server_label)
-        self.hostname_entry = gtk.combo_box_entry_new_text()
-        self.hostname_entry.append_text(default_host)
-        self.hostname_entry.set_active(0)
+        self.hostname_entry = gtk.Entry()
+        self.hostname_entry.set_text(default_host)
         self.hostname_entry.show()
         hbox1.pack_start(self.hostname_entry)
 
@@ -38,9 +37,8 @@ class GUIClient(gtk.Window):
         port_label = gtk.Label("Port")
         port_label.show()
         hbox2.pack_start(port_label)
-        self.port_entry = gtk.combo_box_entry_new_text()
-        self.port_entry.append_text(str(default_port))
-        self.port_entry.set_active(0)
+        self.port_entry = gtk.Entry()
+        self.port_entry.set_text(str(default_port))
         self.port_entry.show()
         hbox2.pack_start(self.port_entry)
 
@@ -76,13 +74,13 @@ class GUIClient(gtk.Window):
         d1.addCallback(self.done)
 
     def roll(self, widget):
-        host = self.hostname_entry.child.get_text()
-        port_str = self.port_entry.child.get_text()
+        host = self.hostname_entry.get_text()
+        port_str = self.port_entry.get_text()
         try:
             port = int(port_str)
         except ValueError:
             self.port = None
-            self.port_entry.child.set_text("")
+            self.port_entry.set_text("")
             return
         if self.protocol is None or host != self.host or port != self.port:
             self.host = host
