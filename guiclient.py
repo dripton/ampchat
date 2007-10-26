@@ -79,8 +79,11 @@ class GUIClient(gtk.Window):
         try:
             port = int(port_str)
         except ValueError:
+            messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
+              buttons=gtk.BUTTONS_OK, message_format="Port must be a number")
+            messagedialog.run()
+            messagedialog.destroy()
             self.port = None
-            self.port_entry.set_text("")
             return
         if self.protocol is None or host != self.host or port != self.port:
             self.host = host
@@ -88,8 +91,15 @@ class GUIClient(gtk.Window):
             clientcreator = ClientCreator(reactor, amp.AMP)
             d1 = clientcreator.connectTCP(self.host, self.port)
             d1.addCallback(self.connect_finished)
+            d1.addErrback(self.failure)
         else:
             self.connect_finished(self.protocol)
+
+    def failure(self, error):
+            messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
+              buttons=gtk.BUTTONS_OK, message_format="Could not connect")
+            messagedialog.run()
+            messagedialog.destroy()
 
     def stop(self, unused):
         reactor.stop()
