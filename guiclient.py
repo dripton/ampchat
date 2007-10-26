@@ -108,10 +108,11 @@ class GUIClient(gtk.Window):
             self.connect_finished(self.protocol)
 
     def failure(self, error):
-            messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
-              buttons=gtk.BUTTONS_OK, message_format="Could not connect")
-            messagedialog.run()
-            messagedialog.destroy()
+        messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
+          buttons=gtk.BUTTONS_OK, 
+          message_format="Could not connect to %s:%s" % (self.host, self.port))
+        messagedialog.run()
+        messagedialog.destroy()
 
     def stop(self, unused):
         reactor.stop()
