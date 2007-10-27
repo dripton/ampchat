@@ -7,7 +7,7 @@ from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 import gtk
 
-from chatserver import RollDice, default_port
+from chatserver import ChatProtocol, default_port
 
 default_host = "localhost"
 
@@ -17,8 +17,7 @@ class ChatClient(gtk.Window):
         gtk.Window.__init__(self)
         self.set_default_size(200, 100)
         self.connect("destroy", self.stop)
-        self.set_icon_from_file("Die6.png")
-        self.set_title("AMP Die Roller")
+        self.set_title("AMP Chat Demo")
 
         self.vbox = gtk.VBox()
         self.add(self.vbox)

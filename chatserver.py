@@ -31,8 +31,9 @@ class SendToUser(amp.Command):
 
 
 class ChatProtocol(amp.AMP):
-    def __init__(self):
+    def __init__(self, portal):
         amp.AMP.__init__(self)
+        self.portal = portal
         self.username_to_peer = {}
 
     def login(self, username, password):
@@ -55,8 +56,23 @@ class ChatProtocol(amp.AMP):
             ok = False
         return {'ok': ok}
 
+
 class Server(object):
     pass
+
+
+class ChatFactory(Factory):
+
+    protocol = ChatProtocol
+
+    def __init__(self, portal):
+        self.portal = portal
+
+    def buildProtocol(self, addr):
+        p = self.protocol(self.portal)
+        p.factory = self
+        return p
+
 
 def main():
     options = Options()
@@ -72,8 +88,7 @@ def main():
     realm = Realm.Realm(server)
     checker = FilePasswordDB("passwd.txt")
     portal = Portal(realm, [checker])
-    factory = Factory(portal)
-    factory.protocol = ChatProtocol
+    factory = ChatFactory(portal)
     reactor.listenTCP(port, factory)
     reactor.run()
 
