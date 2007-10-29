@@ -17,17 +17,21 @@ class Options(usage.Options):
         ["port", "p", default_port, "server port"],
     ]
 
+
+# XXX Not sure if we want this here.
 class LogIn(amp.Command):
     arguments = [('username', amp.String()), ('password', amp.String())]
     response = [('ok', amp.Boolean())]
 
 class SendToAll(amp.Command):
     arguments = [('message', amp.String())]
-    response = [('ok', amp.Boolean())]
+    response = []
+    requiresAnswer = False
 
 class SendToUser(amp.Command):
     arguments = [('message', amp.String()), 'username', amp.String()]
-    response = [('ok', amp.Boolean())]
+    response = []
+    requiresAnswer = False
 
 
 class ChatProtocol(amp.AMP):
@@ -36,25 +40,33 @@ class ChatProtocol(amp.AMP):
         self.portal = portal
         self.username_to_peer = {}
 
+    # XXX Not sure if this goes here.
     def login(self, username, password):
         """Attempt to login.
-        
+
         Return True if successful, False if not.
         """
-        # For now we allow anyone to login.
+        # TODO Check username and password
+        # XXX Wrong
         self.username_to_peer[username] = self.transport.getPeer()
         ok = True
         return {'ok': ok}
     LogIn.responder(login)
 
+
     def send_to_user(self, message, username):
         peer = self.username_to_peer().get(username)
         if peer is not None:
             peer.callRemote("send_message", message)
-            ok = True
-        else:
-            ok = False
-        return {'ok': ok}
+        return {}
+    SendToUser.responder(send_to_user)
+
+    def send_to_all(self, message):
+        peer = self.username_to_peer().get(username)
+        if peer is not None:
+            peer.callRemote("send_message", message)
+        return {}
+    SendToAll.responder(send_to_all)
 
 
 class Server(object):
