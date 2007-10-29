@@ -6,61 +6,54 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 import gtk
+import gtk.glade
 
 from chatserver import ChatProtocol, default_port
 
 default_host = "localhost"
 
+ui_string = """<ui>
+  <menubar name="Menubar">
+    <menu action="FileMenu">
+      <menuitem action="Connect"/>
+      <menuitem action="Quit"/>
+    </menu>
+  </menubar>
+</ui>"""
 
-class ChatClient(gtk.Window):
+class ChatClient(object):
     def __init__(self):
-        gtk.Window.__init__(self)
-        self.set_default_size(200, 100)
-        self.connect("destroy", self.stop)
-        self.set_title("AMP Chat Demo")
-
-        self.vbox = gtk.VBox()
-        self.add(self.vbox)
-        self.vbox.show()
-
-        hbox1 = gtk.HBox()
-        hbox1.show()
-        self.vbox.pack_start(hbox1)
-        server_label = gtk.Label("Server")
-        server_label.show()
-        hbox1.pack_start(server_label)
-        self.hostname_entry = gtk.Entry()
-        self.hostname_entry.set_text(default_host)
-        self.hostname_entry.show()
-        hbox1.pack_start(self.hostname_entry)
-
-        hbox2 = gtk.HBox()
-        hbox2.show()
-        self.vbox.pack_start(hbox2)
-        port_label = gtk.Label("Port")
-        port_label.show()
-        hbox2.pack_start(port_label)
-        self.port_entry = gtk.Entry(5)
-        self.port_entry.set_text(str(default_port))
-        self.port_entry.show()
-        hbox2.pack_start(self.port_entry)
-
-        button = gtk.Button()
-        button.set_label("Roll")
-        button.connect("clicked", self.roll)
-        button.show()
-        self.vbox.pack_start(button)
-
-        self.image = gtk.Image()
-        self.image.set_size_request(60, 60)
-        self.image.show()
-        self.vbox.pack_start(self.image)
-
-        self.show()
-
         self.protocol = None
         self.host = None
         self.port = None
+
+        self.glade = gtk.glade.XML("chat.glade")
+        self.widget_names = ["chat_window"]
+        for widget_name in self.widget_names:
+            setattr(self, widget_name, self.glade.get_widget(widget_name))
+
+        self.create_ui()
+
+        self.chat_window.set_default_size(200, 100)
+        self.chat_window.connect("destroy", self.stop)
+        self.chat_window.set_title("AMP Chat Demo")
+        self.chat_window.show()
+
+    def create_ui(self):
+        action_group = gtk.ActionGroup("MasterActions")
+        actions = [
+          ("FileMenu", None, "_File"),
+          ("Connect", None, "_Connect", "c", "Connect", 
+            self.connect_to_server),
+          ("Quit", gtk.STOCK_QUIT, "_Quit", "<control>Q", "Quit program", 
+            self.stop),
+        ]
+        self.chat_window.ui_manager = gtk.UIManager()
+        self.chat_window.ui_manager.insert_action_group(action_group, 0)
+        self.chat_window.ui_manager.add_ui_from_string(ui_string)
+        self.chat_window.add_accel_group(
+          self.chat_window.ui_manager.get_accel_group())
+
 
     def done(self, result):
         self.vbox.remove(self.image)
@@ -76,7 +69,7 @@ class ChatClient(gtk.Window):
         d1.addCallback(lambda result_dict: result_dict['result'])
         d1.addCallback(self.done)
 
-    def roll(self, widget):
+    def connect_to_server(self, widget):
         host = self.hostname_entry.get_text()
         port_str = self.port_entry.get_text()
         try:
