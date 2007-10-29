@@ -10,7 +10,8 @@ from chatserver import default_port
 class ConnectDialog(object):
     def __init__(self, callback):
         self.glade = gtk.glade.XML("connect.glade")
-        self.widget_names = ["connect_dialog", "hostname_entry", "port_entry"]
+        self.widget_names = ["connect_dialog", "hostname_entry", "port_entry",
+          "username_entry", "password_entry"]
         for widget_name in self.widget_names:
             setattr(self, widget_name, self.glade.get_widget(widget_name))
         self.connect_dialog.show()
@@ -30,6 +31,25 @@ class ConnectDialog(object):
                 messagedialog.run()
                 messagedialog.destroy()
                 return True
+            username = self.username_entry.get_text()
+            if not username:
+                messagedialog = gtk.MessageDialog(parent=self.connect_dialog,
+                  type=gtk.MESSAGE_ERROR,
+                  buttons=gtk.BUTTONS_OK, 
+                  message_format="Need a username")
+                messagedialog.run()
+                messagedialog.destroy()
+                return True
+            password = self.password_entry.get_text()
+            if not password:
+                messagedialog = gtk.MessageDialog(parent=self.connect_dialog,
+                  type=gtk.MESSAGE_ERROR,
+                  buttons=gtk.BUTTONS_OK, 
+                  message_format="Need a password")
+                messagedialog.run()
+                messagedialog.destroy()
+                return True
+
             port_str = self.port_entry.get_text()
             try:
                 port = int(port_str)
@@ -50,13 +70,14 @@ class ConnectDialog(object):
                     messagedialog.run()
                     messagedialog.destroy()
                     return True
-            self.callback(hostname, port)
+            self.callback(hostname, port, username, password)
             self.connect_dialog.destroy()
     
 
 if __name__ == "__main__":
-    def print_callback(hostname, port):
-        print("hostname: %s port: %s" % (hostname, port))
+    def print_callback(hostname, port, username, password):
+        print("hostname: %s port: %s username: %s" % (hostname, port, 
+          username))
         gtk.main_quit()
     connect_dialog = ConnectDialog(print_callback)
     gtk.main()

@@ -5,6 +5,7 @@ gtk2reactor.install()
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
+from twisted.cred import credentials
 import gtk
 import gtk.glade
 
@@ -27,6 +28,8 @@ class ChatClient(object):
         self.protocol = None
         self.host = None
         self.port = None
+        self.username = None
+        self.password = None
 
         self.glade = gtk.glade.XML("chat.glade")
         self.widget_names = ["chat_window", "chat_view", "chat_entry", 
@@ -62,19 +65,21 @@ class ChatClient(object):
     def create_connect_dialog(self, action):
         connect_dialog = connect.ConnectDialog(self.connect_to_server)
 
-    def connect_finished(self, protocol):
+    def connect_finished(self, protocol, username, password):
         self.protocol = protocol
-        d1 = protocol.callRemote(RollDice, sides=6)
-        d1.addCallback(lambda result_dict: result_dict['result'])
-        d1.addCallback(self.done)
 
-    def connect_to_server(self, host, port):
-        if self.protocol is None or host != self.host or port != self.port:
+    def connect_to_server(self, host, port, username, password):
+        if (self.protocol is None or host != self.host or port != self.port or 
+          username != self.username or password != self.password):
             self.host = host
             self.port = port
+            self.username = username
+            self.password = password
+            user_pass = credentials.UsernamePassword(username, password)
             client_creator = ClientCreator(reactor, ChatProtocol, None)
-            d1 = client_creator.connectTCP(self.host, self.port)
-            d1.addCallback(self.connect_finished)
+            client_creator.connectTCP(self.host, self.port)
+            d1 = client_creator.login(user_pass, self)
+            d1.addCallback(self.connect_finished, username, password)
             d1.addErrback(self.failure)
         else:
             self.connect_finished(self.protocol)
