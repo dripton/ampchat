@@ -28,11 +28,14 @@ class ChatClient(object):
         self.port = None
 
         self.glade = gtk.glade.XML("chat.glade")
-        self.widget_names = ["chat_window", "chat_view", "chat_entry", "user_list"]
+        self.widget_names = ["chat_window", "chat_view", "chat_entry", 
+          "user_list", "vbox1"]
         for widget_name in self.widget_names:
             setattr(self, widget_name, self.glade.get_widget(widget_name))
 
         self.create_ui()
+        self.vbox1.pack_start(self.chat_window.ui_manager.get_widget(
+          "/Menubar"), False, False, 0)
 
         self.chat_window.set_default_size(200, 100)
         self.chat_window.connect("destroy", self.stop)
@@ -55,8 +58,8 @@ class ChatClient(object):
         self.chat_window.add_accel_group(
           self.chat_window.ui_manager.get_accel_group())
 
-    def create_connect_dialog(self):
-        print "create_connect_dialog"
+    def create_connect_dialog(self, action):
+        print "create_connect_dialog", self, action
 
     def done(self, result):
         print "done"
