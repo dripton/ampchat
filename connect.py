@@ -3,6 +3,8 @@
 import gtk
 import gtk.glade
 
+from chatserver import default_port
+
 """Dialog for specifying connection parameters"""
 
 class ConnectDialog(object):
@@ -13,6 +15,8 @@ class ConnectDialog(object):
             setattr(self, widget_name, self.glade.get_widget(widget_name))
         self.connect_dialog.show()
         self.connect_dialog.connect("response", self.response)
+        self.hostname_entry.set_text("localhost")
+        self.port_entry.set_text(str(default_port))
         self.callback = callback
 
     def response(self, dialog, response_id):
