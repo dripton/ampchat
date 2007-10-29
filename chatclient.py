@@ -9,6 +9,7 @@ import gtk
 import gtk.glade
 
 from chatserver import ChatProtocol, default_port
+import connect
 
 default_host = "localhost"
 
@@ -59,10 +60,7 @@ class ChatClient(object):
           self.chat_window.ui_manager.get_accel_group())
 
     def create_connect_dialog(self, action):
-        print "create_connect_dialog", self, action
-
-    def done(self, result):
-        print "done"
+        connect_dialog = connect.ConnectDialog(self.connect_to_server)
 
     def connect_finished(self, protocol):
         self.protocol = protocol
@@ -70,27 +68,7 @@ class ChatClient(object):
         d1.addCallback(lambda result_dict: result_dict['result'])
         d1.addCallback(self.done)
 
-    def connect_to_server(self, widget):
-        host = self.hostname_entry.get_text()
-        port_str = self.port_entry.get_text()
-        try:
-            port = int(port_str)
-        except ValueError:
-            messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
-              buttons=gtk.BUTTONS_OK, message_format="Port must be a number")
-            messagedialog.run()
-            messagedialog.destroy()
-            self.port = None
-            return
-        else:
-            if port < 1 or port > 65535:
-                messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR,
-                  buttons=gtk.BUTTONS_OK, 
-                  message_format="Port must be in range 1-65535")
-                messagedialog.run()
-                messagedialog.destroy()
-                self.port = None
-                return
+    def connect_to_server(self, host, port):
         if self.protocol is None or host != self.host or port != self.port:
             self.host = host
             self.port = port
@@ -102,8 +80,8 @@ class ChatClient(object):
             self.connect_finished(self.protocol)
 
     def failure(self, error):
-        messagedialog = gtk.MessageDialog(self, type=gtk.MESSAGE_ERROR, 
-          buttons=gtk.BUTTONS_OK, 
+        messagedialog = gtk.MessageDialog(parent=self.chat_window, 
+          type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_OK,
           message_format="Could not connect to %s:%s" % (self.host, self.port))
         messagedialog.run()
         messagedialog.destroy()
