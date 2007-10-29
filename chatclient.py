@@ -28,7 +28,7 @@ class ChatClient(object):
         self.port = None
 
         self.glade = gtk.glade.XML("chat.glade")
-        self.widget_names = ["chat_window"]
+        self.widget_names = ["chat_window", "chat_view", "chat_entry", "user_list"]
         for widget_name in self.widget_names:
             setattr(self, widget_name, self.glade.get_widget(widget_name))
 
@@ -43,25 +43,23 @@ class ChatClient(object):
         action_group = gtk.ActionGroup("MasterActions")
         actions = [
           ("FileMenu", None, "_File"),
-          ("Connect", None, "_Connect", "c", "Connect", 
-            self.connect_to_server),
+          ("Connect", None, "_Connect", None, "Connect", 
+            self.create_connect_dialog),
           ("Quit", gtk.STOCK_QUIT, "_Quit", "<control>Q", "Quit program", 
             self.stop),
         ]
+        action_group.add_actions(actions)
         self.chat_window.ui_manager = gtk.UIManager()
         self.chat_window.ui_manager.insert_action_group(action_group, 0)
         self.chat_window.ui_manager.add_ui_from_string(ui_string)
         self.chat_window.add_accel_group(
           self.chat_window.ui_manager.get_accel_group())
 
+    def create_connect_dialog(self):
+        print "create_connect_dialog"
 
     def done(self, result):
-        self.vbox.remove(self.image)
-        filename = "Die%d.png" % result
-        self.image = gtk.Image()
-        self.image.set_from_file(filename)
-        self.vbox.pack_start(self.image)
-        self.image.show()
+        print "done"
 
     def connect_finished(self, protocol):
         self.protocol = protocol
