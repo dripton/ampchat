@@ -46,8 +46,8 @@ class ConnectDialog(object):
                     messagedialog.run()
                     messagedialog.destroy()
                     return True
-        self.callback(hostname, port)
-        self.connect_dialog.destroy()
+            self.callback(hostname, port)
+            self.connect_dialog.destroy()
     
 
 if __name__ == "__main__":

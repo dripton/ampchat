@@ -72,7 +72,7 @@ class ChatClient(object):
         if self.protocol is None or host != self.host or port != self.port:
             self.host = host
             self.port = port
-            clientcreator = ClientCreator(reactor, amp.AMP)
+            clientcreator = ClientCreator(reactor, ChatProtocol)
             d1 = clientcreator.connectTCP(self.host, self.port)
             d1.addCallback(self.connect_finished)
             d1.addErrback(self.failure)
