@@ -11,6 +11,9 @@ class Realm(object):
         self.server = server
 
     def requestAvatar(self, avatar_id, mind, *interfaces):
-        avatar = User(avatar_id, self.server, mind)
-        avatar.attached(mind)
-        return IAvatar, avatar, avatar.logout
+        if IAvatar in interfaces:
+            avatar = User(avatar_id, self.server, mind)
+            avatar.attached(mind)
+            return IAvatar, avatar, avatar.logout
+        else:
+            raise KeyError("Requested interfaces not supported")
