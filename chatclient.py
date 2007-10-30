@@ -9,7 +9,7 @@ from twisted.cred import credentials
 import gtk
 import gtk.glade
 
-from chatserver import ChatProtocol, default_port
+from chatserver import ChatProtocol, default_port, Login
 import connect
 
 default_host = "localhost"
@@ -75,11 +75,10 @@ class ChatClient(object):
             self.port = port
             self.username = username
             self.password = password
-            user_pass = credentials.UsernamePassword(username, password)
             client_creator = ClientCreator(reactor, ChatProtocol, None)
-            client_creator.connectTCP(self.host, self.port)
-            d1 = client_creator.login(user_pass, self)
-            d1.addCallback(self.connect_finished, username, password)
+            d1 = client_creator.connectTCP(self.host, self.port)
+            d1.addCallback(lambda p: p.callRemote(Login, username=username, 
+              password=password))
             d1.addErrback(self.failure)
         else:
             self.connect_finished(self.protocol)
@@ -87,7 +86,8 @@ class ChatClient(object):
     def failure(self, error):
         messagedialog = gtk.MessageDialog(parent=self.chat_window, 
           type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_OK,
-          message_format="Could not connect to %s:%s" % (self.host, self.port))
+          message_format="Could not connect to %s:%s\n%s" % (self.host, 
+            self.port, error))
         messagedialog.run()
         messagedialog.destroy()
 

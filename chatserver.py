@@ -2,7 +2,7 @@
 
 from twisted.protocols import amp
 from twisted.internet import reactor
-from twisted.internet.protocol import Factory
+from twisted.internet.protocol import ServerFactory
 from twisted.python import usage
 from twisted.cred.checkers import FilePasswordDB
 from twisted.cred.portal import Portal
@@ -18,8 +18,7 @@ class Options(usage.Options):
     ]
 
 
-# XXX Not sure if we want this here.
-class LogIn(amp.Command):
+class Login(amp.Command):
     arguments = [('username', amp.String()), ('password', amp.String())]
     response = [('ok', amp.Boolean())]
 
@@ -40,18 +39,15 @@ class ChatProtocol(amp.AMP):
         self.portal = portal
         self.username_to_peer = {}
 
-    # XXX Not sure if this goes here.
     def login(self, username, password):
         """Attempt to login.
 
         Return True if successful, False if not.
         """
-        # TODO Check username and password
-        # XXX Wrong
         self.username_to_peer[username] = self.transport.getPeer()
         ok = True
         return {'ok': ok}
-    LogIn.responder(login)
+    Login.responder(login)
 
 
     def send_to_user(self, message, username):
@@ -73,7 +69,7 @@ class Server(object):
     pass
 
 
-class ChatFactory(Factory):
+class ChatFactory(ServerFactory):
 
     protocol = ChatProtocol
 
