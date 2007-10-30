@@ -6,11 +6,12 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import ClientCreator
 from twisted.protocols import amp
 from twisted.cred import credentials
+from twisted.cred.error import UnauthorizedLogin
 import gtk
 import gtk.glade
 
-from chatserver import ChatProtocol, default_port, Login
-import connect
+from chatserver import ChatProtocol, default_port, Login, ChatClientFactory
+from connect import ConnectDialog
 
 default_host = "localhost"
 
@@ -63,27 +64,35 @@ class ChatClient(object):
           self.chat_window.ui_manager.get_accel_group())
 
     def create_connect_dialog(self, action):
-        connect_dialog = connect.ConnectDialog(self.connect_to_server)
+        connect_dialog = ConnectDialog(self.connect_to_server)
 
-    def connect_finished(self, protocol, username, password):
-        self.protocol = protocol
 
     def connect_to_server(self, host, port, username, password):
-        if (self.protocol is None or host != self.host or port != self.port or 
-          username != self.username or password != self.password):
-            self.host = host
-            self.port = port
-            self.username = username
-            self.password = password
-            client_creator = ClientCreator(reactor, ChatProtocol, None)
-            d1 = client_creator.connectTCP(self.host, self.port)
-            d1.addCallback(lambda p: p.callRemote(Login, username=username, 
-              password=password))
-            d1.addErrback(self.failure)
-        else:
-            self.connect_finished(self.protocol)
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.factory = ChatClientFactory()
+        reactor.connectTCP(self.host, self.port, self.factory)
+        user_pass = credentials.UsernamePassword(self.username, self.password)
+        deferred = self.factory.login(user_pass, self)
+        deferred.addCallback(self.connected_to_server)
+        deferred.addErrback(self.failure)
+        return deferred
+
+    def connected_to_server(self, protocol):
+        print("connected_to_server")
+        self.protocol = protocol
+        deferred = protocol.callRemote(Login, username=self.username, 
+          password=self.password)
+        deferred.addCallback(self.connect_finished)
+        deferred.addErrback(self.failure)
+
+    def connect_finished(self, result):
+        print("connect_finished", result)
 
     def failure(self, error):
+        print("failure", error)
         messagedialog = gtk.MessageDialog(parent=self.chat_window, 
           type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_OK,
           message_format="Could not connect to %s:%s\n%s" % (self.host, 
@@ -95,6 +104,6 @@ class ChatClient(object):
         reactor.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     chatclient = ChatClient()
     reactor.run()
