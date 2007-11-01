@@ -8,9 +8,8 @@ class IAvatar(Interface):
 class User(object):
     implements(IAvatar)
 
-    def __init__(self, name, server, client):
+    def __init__(self, name, client):
         self.name = name
-        self.server = server
         self.client = client
 
     def attached(self, mind):

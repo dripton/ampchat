@@ -94,8 +94,7 @@ def main():
         sys.exit(1)
     port = int(options["port"])
 
-    server = Server()
-    realm = Realm(server)
+    realm = Realm()
     checker = FilePasswordDB("passwd.txt")
     portal = Portal(realm, [checker])
     factory = ChatFactory(portal)
