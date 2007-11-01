@@ -2,7 +2,8 @@
 
 from twisted.protocols import amp
 from twisted.internet import reactor
-from twisted.internet.protocol import ServerFactory, ClientFactory
+from twisted.internet.protocol import (ServerFactory, ClientFactory,
+  _InstanceFactory)
 from twisted.python import usage
 from twisted.cred.checkers import FilePasswordDB
 from twisted.cred.portal import Portal
@@ -30,6 +31,7 @@ class Login(amp.Command):
     # If we set requiresAnswer = False, then the client-side callRemote
     # returns None instead of a deferred, and we can't attach callbacks.
     # So be sure to return an empty dict instead.
+    # TODO doc patch for twisted
 
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
@@ -50,26 +52,31 @@ class ChatProtocol(amp.AMP):
 
     def login(self, username, password):
         """Attempt to login."""
+        print "ChatProtocol.login", username, password
         creds = credentials.UsernamePassword(username, password)
+        # XXX Need the mind here.
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
         deferred.addErrback(self.login_failed)
+        # XXX We need to wait for the deferred to fire, so we can't
+        # return an answer yet.  So we need to send LoggedIn or
+        # LoginFailed to the ChatClientProtocol instead.
         return {}
     Login.responder(login)
 
-    def login_succeeded(self):
-        print "login_succeeded"
+    def login_succeeded(self, (avatar_interface, avatar, logout)):
+        print "login_succeeded", avatar_interface, avatar, logout
 
-    def login_failed(self):
-        print "login_failed"
+    def login_failed(self, failure):
+        print "ChatProtocol.login_failed", failure
 
     def send_to_user(self, message, username):
-        peer.callRemote("send_message", message)
+        # TODO
         return {}
     SendToUser.responder(send_to_user)
 
     def send_to_all(self, message):
-        peer.callRemote("send_message", message)
+        # TODO
         return {}
     SendToAll.responder(send_to_all)
 
@@ -124,8 +131,11 @@ class ChatFactory(ServerFactory):
     def __init__(self, portal):
         self.portal = portal
 
-class ChatClientFactory(ClientFactory):
+class ChatClientFactory(_InstanceFactory):
     protocol = ChatClientProtocol
+
+    def __repr__(self):
+        return "<ChatClient factory: %r>" % (self.instance, )
 
 
 def main():

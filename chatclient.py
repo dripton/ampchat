@@ -10,7 +10,8 @@ from twisted.cred.error import UnauthorizedLogin
 import gtk
 import gtk.glade
 
-from chatserver import ChatProtocol, default_port, Login, ChatClientFactory
+from chatserver import (ChatProtocol, default_port, Login, ChatClientFactory,
+  ChatClientProtocol)
 from connect import ConnectDialog
 
 default_host = "localhost"
@@ -66,16 +67,16 @@ class ChatClient(object):
     def create_connect_dialog(self, action):
         connect_dialog = ConnectDialog(self.connect_to_server)
 
-
     def connect_to_server(self, host, port, username, password):
+        print("connect_to_server")
         self.host = host
         self.port = port
         self.username = username
         self.password = password
-        self.factory = ChatClientFactory()
-        reactor.connectTCP(self.host, self.port, self.factory)
-        user_pass = credentials.UsernamePassword(self.username, self.password)
-        deferred = self.factory.login(user_pass, self)
+        deferred = defer.Deferred()
+        self.factory = ChatClientFactory(reactor, ChatClientProtocol(), 
+          deferred)
+        connector = reactor.connectTCP(self.host, self.port, self.factory)
         deferred.addCallback(self.connected_to_server)
         deferred.addErrback(self.failure)
         return deferred
