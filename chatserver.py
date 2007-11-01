@@ -50,9 +50,17 @@ class ChatProtocol(amp.AMP):
         name = avatar.name
         self.username = name
         self.factory.username_to_protocol[name] = self
+        self.callRemote(commands.LoggedIn, ok=True)
+        # Tell all users about this user
+        for protocol in self.factory.username_to_protocol.itervalues():
+            protocol.callRemote(commands.AddUser, user=name)
+        # Tell this user about all users
+        for username in self.factory.username_to_protocol.iterkeys():
+            self.callRemote(commands.AddUser, user=username)
 
     def login_failed(self, failure):
         print "ChatProtocol.login_failed", failure
+        self.callRemote(commands.LoggedIn, ok=False)
 
     def send_to_user(self, message, username):
         print "send_to_user", message, username
