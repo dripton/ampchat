@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+
 from twisted.protocols import amp
 from twisted.internet import reactor
-from twisted.internet.protocol import (ServerFactory, ClientFactory,
-  _InstanceFactory)
+from twisted.internet.protocol import ServerFactory
 from twisted.python import usage
 from twisted.cred.checkers import FilePasswordDB
 from twisted.cred.portal import Portal
@@ -12,6 +13,7 @@ from twisted.cred.error import UnauthorizedLogin
 
 from Realm import Realm
 from User import IAvatar
+import commands
 
 default_port = 65432
 
@@ -21,27 +23,6 @@ class Options(usage.Options):
         ["port", "p", default_port, "server port"],
     ]
 
-
-# commands in ChatProtocol
-
-class Login(amp.Command):
-    arguments = [("username", amp.String()), ("password", amp.String())]
-    response = []
-    errors = {UnauthorizedLogin: "UnauthorizedLogin"}
-    # If we set requiresAnswer = False, then the client-side callRemote
-    # returns None instead of a deferred, and we can't attach callbacks.
-    # So be sure to return an empty dict instead.
-    # TODO doc patch for twisted
-
-class SendToAll(amp.Command):
-    arguments = [("message", amp.String())]
-    response = []
-    requiresAnswer = False
-
-class SendToUser(amp.Command):
-    arguments = [("message", amp.String()), "username", amp.String()]
-    response = []
-    requiresAnswer = False
 
 
 class ChatProtocol(amp.AMP):
@@ -62,7 +43,7 @@ class ChatProtocol(amp.AMP):
         # return an answer yet.  So we need to send LoggedIn or
         # LoginFailed to the ChatClientProtocol instead.
         return {}
-    Login.responder(login)
+    commands.Login.responder(login)
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
         print "login_succeeded", avatar_interface, avatar, logout
@@ -73,63 +54,12 @@ class ChatProtocol(amp.AMP):
     def send_to_user(self, message, username):
         # TODO
         return {}
-    SendToUser.responder(send_to_user)
+    commands.SendToUser.responder(send_to_user)
 
     def send_to_all(self, message):
         # TODO
         return {}
-    SendToAll.responder(send_to_all)
-
-
-# commands in ChatClientProtocol
-
-class Send(amp.Command):
-    arguments = [("message", amp.String()), ("sender", amp.String())]
-    response = []
-    requiresAnswer = False
-
-class AddUser(amp.Command):
-    arguments = [("user", amp.String())]
-    response = []
-    requiresAnswer = False
-
-class DelUser(amp.Command):
-    arguments = [("user", amp.String())]
-    response = []
-    requiresAnswer = False
-
-class LoggedIn(amp.Command):
-    arguments = [("ok", amp.Boolean())]
-    response = []
-    requiresAnswer = False
-
-
-class ChatClientProtocol(amp.AMP):
-    def __init__(self, *args):
-        print "ChatClientProtocol.__init__", self, args
-        super(ChatClientProtocol, self).__init__()
-        self.users = set()
-
-    def send(self, message, sender):
-        """Send message to this client from sender"""
-        #TODO
-        return {}
-    Send.responder(send)
-
-    def add_user(self, user):
-        self.users.add(user)
-        return {}
-    AddUser.responder(add_user)
-
-    def del_user(self, user):
-        self.users.discard(user)
-        return {}
-    DelUser.responder(add_user)
-
-    def logged_in(self, ok):
-        pass
-        #TODO
-    LoggedIn.responder(logged_in)
+    commands.SendToAll.responder(send_to_all)
 
 
 class Server(object):
@@ -141,12 +71,6 @@ class ChatFactory(ServerFactory):
 
     def __init__(self, portal):
         self.portal = portal
-
-class ChatClientFactory(_InstanceFactory):
-    protocol = ChatClientProtocol
-
-    def __repr__(self):
-        return "<ChatClient factory: %r>" % (self.instance, )
 
 
 def main():

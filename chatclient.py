@@ -3,18 +3,55 @@
 from twisted.internet import gtk2reactor
 gtk2reactor.install()
 from twisted.internet import reactor, defer
-from twisted.internet.protocol import ClientCreator
+from twisted.internet.protocol import _InstanceFactory
 from twisted.protocols import amp
 from twisted.cred import credentials
 from twisted.cred.error import UnauthorizedLogin
 import gtk
 import gtk.glade
 
-from chatserver import (ChatProtocol, default_port, Login, ChatClientFactory,
-  ChatClientProtocol)
+from chatserver import default_port
 from connect import ConnectDialog
+import commands
 
 default_host = "localhost"
+
+
+
+class ChatClientProtocol(amp.AMP):
+    def __init__(self, *args):
+        print "ChatClientProtocol.__init__", self, args
+        super(ChatClientProtocol, self).__init__()
+        self.users = set()
+
+    def send(self, message, sender):
+        """Send message to this client from sender"""
+        #TODO
+        return {}
+    commands.Send.responder(send)
+
+    def add_user(self, user):
+        self.users.add(user)
+        return {}
+    commands.AddUser.responder(add_user)
+
+    def del_user(self, user):
+        self.users.discard(user)
+        return {}
+    commands.DelUser.responder(add_user)
+
+    def logged_in(self, ok):
+        pass
+        #TODO
+    commands.LoggedIn.responder(logged_in)
+
+
+class ChatClientFactory(_InstanceFactory):
+    protocol = ChatClientProtocol
+
+    def __repr__(self):
+        return "<ChatClient factory: %r>" % (self.instance, )
+
 
 ui_string = """<ui>
   <menubar name="Menubar">
@@ -83,9 +120,8 @@ class ChatClient(object):
 
     def connected_to_server(self, protocol):
         print("connected_to_server")
-        # This is the ChatProtocol, not the ChatClientProtocol
         self.protocol = protocol
-        deferred = protocol.callRemote(Login, username=self.username, 
+        deferred = protocol.callRemote(commands.Login, username=self.username, 
           password=self.password)
         deferred.addCallback(self.connect_finished)
         deferred.addErrback(self.failure)
@@ -104,6 +140,10 @@ class ChatClient(object):
 
     def stop(self, unused):
         reactor.stop()
+
+
+
+
 
 
 if __name__ == "__main__":
