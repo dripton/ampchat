@@ -11,6 +11,7 @@ class Realm(object):
         self.server = server
 
     def requestAvatar(self, avatar_id, mind, *interfaces):
+        print "Realm.requestAvatar", avatar_id, mind, interfaces
         if IAvatar in interfaces:
             avatar = User(avatar_id, self.server, mind)
             avatar.attached(mind)
