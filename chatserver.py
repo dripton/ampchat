@@ -98,6 +98,11 @@ class DelUser(amp.Command):
     response = []
     requiresAnswer = False
 
+class LoggedIn(amp.Command):
+    arguments = [("ok", amp.Boolean())]
+    response = []
+    requiresAnswer = False
+
 
 class ChatClientProtocol(amp.AMP):
     def __init__(self, *args):
@@ -120,6 +125,12 @@ class ChatClientProtocol(amp.AMP):
         self.users.discard(user)
         return {}
     DelUser.responder(add_user)
+
+    def logged_in(self, ok):
+        pass
+        #TODO
+    LoggedIn.responder(logged_in)
+
 
 class Server(object):
     pass
