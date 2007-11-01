@@ -17,12 +17,10 @@ class Login(amp.Command):
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
     response = []
-    requiresAnswer = False
 
 class SendToUser(amp.Command):
     arguments = [("message", amp.String()), "username", amp.String()]
     response = []
-    requiresAnswer = False
 
 
 # commands to client side
@@ -30,19 +28,15 @@ class SendToUser(amp.Command):
 class Send(amp.Command):
     arguments = [("message", amp.String()), ("sender", amp.String())]
     response = []
-    requiresAnswer = False
 
 class AddUser(amp.Command):
     arguments = [("user", amp.String())]
     response = []
-    requiresAnswer = False
 
 class DelUser(amp.Command):
     arguments = [("user", amp.String())]
     response = []
-    requiresAnswer = False
 
 class LoggedIn(amp.Command):
     arguments = [("ok", amp.Boolean())]
     response = []
-    requiresAnswer = False
