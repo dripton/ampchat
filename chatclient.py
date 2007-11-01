@@ -31,18 +31,20 @@ class ChatClientProtocol(amp.AMP):
     commands.Send.responder(send)
 
     def add_user(self, user):
+        print "add_user", user
         self.users.add(user)
         return {}
     commands.AddUser.responder(add_user)
 
     def del_user(self, user):
+        print "del_user", user
         self.users.discard(user)
         return {}
     commands.DelUser.responder(add_user)
 
     def logged_in(self, ok):
-        pass
-        #TODO
+        print "logged_in", ok
+        return {}
     commands.LoggedIn.responder(logged_in)
 
 
