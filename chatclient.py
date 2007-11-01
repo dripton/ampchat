@@ -26,7 +26,7 @@ class ChatClientProtocol(amp.AMP):
 
     def send(self, message, sender):
         """Send message to this client from sender"""
-        #TODO
+        print "send", message, sender
         return {}
     commands.Send.responder(send)
 

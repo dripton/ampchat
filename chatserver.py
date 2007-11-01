@@ -30,34 +30,44 @@ class ChatProtocol(amp.AMP):
     def __init__(self, *args):
         print "ChatProtocol.__init__", self, args
         super(ChatProtocol, self).__init__()
+        self.username = None
 
     def login(self, username, password):
         """Attempt to login."""
         print "ChatProtocol.login", username, password
         creds = credentials.UsernamePassword(username, password)
-        # XXX Need the mind here.
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
         deferred.addErrback(self.login_failed)
-        # XXX We need to wait for the deferred to fire, so we can't
-        # return an answer yet.  So we need to send LoggedIn or
-        # LoginFailed to the ChatClientProtocol instead.
+        # We need to wait for the deferred to fire, so we can't
+        # return an answer yet.  So we need to send LoggedIn
+        # to the ChatClientProtocol instead.
         return {}
     commands.Login.responder(login)
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
         print "login_succeeded", avatar_interface, avatar, logout
+        name = avatar.name
+        self.username = name
+        self.factory.username_to_protocol[name] = self
 
     def login_failed(self, failure):
         print "ChatProtocol.login_failed", failure
 
     def send_to_user(self, message, username):
-        # TODO
+        print "send_to_user", message, username
+        protocol = self.factory.username_to_protocol.get(username)
+        if protocol:
+            protocol.callRemote(commands.Send, message=message, 
+              sender=self.username)
         return {}
     commands.SendToUser.responder(send_to_user)
 
     def send_to_all(self, message):
-        # TODO
+        print "send_to_all", message
+        for protocol in self.factory.username_to_protocol.itervalues():
+            protocol.callRemote(commands.Send, message=message,
+              sender=self.username)
         return {}
     commands.SendToAll.responder(send_to_all)
 
@@ -71,6 +81,7 @@ class ChatFactory(ServerFactory):
 
     def __init__(self, portal):
         self.portal = portal
+        self.username_to_protocol = {}
 
 
 def main():
@@ -90,6 +101,7 @@ def main():
     factory = ChatFactory(portal)
     reactor.listenTCP(port, factory)
     reactor.run()
+
 
 if __name__ == "__main__":
     main()
