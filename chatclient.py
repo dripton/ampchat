@@ -83,6 +83,7 @@ class ChatClient(object):
 
     def connected_to_server(self, protocol):
         print("connected_to_server")
+        # This is the ChatProtocol, not the ChatClientProtocol
         self.protocol = protocol
         deferred = protocol.callRemote(Login, username=self.username, 
           password=self.password)
