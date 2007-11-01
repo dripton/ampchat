@@ -79,11 +79,16 @@ class ChatClient(object):
         self.create_ui()
         self.vbox1.pack_start(self.chat_window.ui_manager.get_widget(
           "/Menubar"), False, False, 0)
+        self.vbox1.reorder_child(self.chat_window.ui_manager.get_widget(
+          "/Menubar"), 0)
 
         self.chat_window.set_default_size(200, 100)
         self.chat_window.connect("destroy", self.stop)
         self.chat_window.set_title("AMP Chat Demo")
         self.chat_window.show()
+
+        self.chat_entry.connect("key-press-event", self.cb_keypress)
+        self.chat_entry.show()
 
     def create_ui(self):
         action_group = gtk.ActionGroup("MasterActions")
@@ -119,7 +124,7 @@ class ChatClient(object):
         return deferred
 
     def connected_to_server(self, protocol):
-        print("connected_to_server")
+        print("connected_to_server", protocol)
         self.protocol = protocol
         deferred = protocol.callRemote(commands.Login, username=self.username, 
           password=self.password)
@@ -141,9 +146,16 @@ class ChatClient(object):
     def stop(self, unused):
         reactor.stop()
 
-
-
-
+    def cb_keypress(self, entry, event):
+        ENTER_KEY = 65293   # XXX Find a cleaner way
+        if event.keyval == ENTER_KEY:
+            text = self.chat_entry.get_text()
+            if text and self.protocol is not None:
+                # TODO If a username is highlighted, SendToUser
+                deferred = self.protocol.callRemote(commands.SendToAll, 
+                  message=text)
+                deferred.addErrback(self.failure)
+                self.chat_entry.set_text("")
 
 
 if __name__ == "__main__":
