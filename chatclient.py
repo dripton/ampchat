@@ -45,7 +45,7 @@ class ChatClientProtocol(amp.AMP):
         self.users.discard(user)
         chatclient.update_user_store(self.users)
         return {}
-    commands.DelUser.responder(add_user)
+    commands.DelUser.responder(del_user)
 
     def logged_in(self, ok):
         print "logged_in", ok
@@ -104,7 +104,9 @@ class ChatClient(object):
         self.user_store = gtk.ListStore(str)
         self.user_list.set_model(self.user_store)
         selection = self.user_list.get_selection()
-        selection.set_select_function(self.cb_user_list_select, None)
+        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_select_function(self.cb_user_list_select, data=None,
+          full=True)
         column = gtk.TreeViewColumn("User Name", gtk.CellRendererText(),
           text=0)
         self.user_list.append_column(column)
@@ -183,7 +185,8 @@ class ChatClient(object):
                 deferred.addErrback(self.failure)
                 self.chat_entry.set_text("")
 
-    def cb_user_list_select(self, path, unused):
+    def cb_user_list_select(self, selection, model, path, is_selected, unused):
+        print "cb_user_list_select", selection, model, path, is_selected
         index = path[0]
         row = self.user_store[index, 0]
         name = row[0]

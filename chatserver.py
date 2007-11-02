@@ -81,6 +81,10 @@ class ChatProtocol(amp.AMP):
         return {}
     commands.SendToAll.responder(send_to_all)
 
+    def connectionLost(self, unused):
+        del self.factory.username_to_protocol[self.username]
+        for protocol in self.factory.username_to_protocol.itervalues():
+            protocol.callRemote(commands.DelUser, user=self.username)
 
 
 class ChatFactory(ServerFactory):
