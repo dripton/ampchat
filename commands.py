@@ -13,7 +13,7 @@ class SendToAll(amp.Command):
     response = []
 
 class SendToUser(amp.Command):
-    arguments = [("message", amp.String()), "username", amp.String()]
+    arguments = [("message", amp.String()), ("username", amp.String())]
     response = []
 
 
