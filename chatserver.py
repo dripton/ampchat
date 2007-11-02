@@ -11,8 +11,7 @@ from twisted.cred.portal import Portal
 from twisted.cred import credentials
 from twisted.cred.error import UnauthorizedLogin
 
-from Realm import Realm
-from User import IAvatar
+from Realm import Realm, IAvatar
 import commands
 
 default_port = 65432
