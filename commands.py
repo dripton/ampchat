@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from twisted.protocols import amp
 from twisted.cred.error import UnauthorizedLogin
 
