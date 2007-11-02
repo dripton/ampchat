@@ -38,10 +38,9 @@ class ChatProtocol(amp.AMP):
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
         deferred.addErrback(self.login_failed)
-        # We need to wait for the deferred to fire, so we can't
-        # return an answer yet.  So we need to send LoggedIn
-        # to the ChatClientProtocol instead.
-        return {}
+        # We need to wait for the deferred to fire, so we can't return an
+        # answer yet.
+        return {} 
     commands.Login.responder(login)
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
@@ -78,9 +77,6 @@ class ChatProtocol(amp.AMP):
         return {}
     commands.SendToAll.responder(send_to_all)
 
-
-class Server(object):
-    pass
 
 
 class ChatFactory(ServerFactory):
