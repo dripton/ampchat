@@ -18,27 +18,34 @@ default_host = "localhost"
 
 
 
+
 class ChatClientProtocol(amp.AMP):
-    def __init__(self, *args):
-        print "ChatClientProtocol.__init__", self, args
-        super(ChatClientProtocol, self).__init__()
-        self.users = set()
+    # XXX Due to metaclass weirdness with amp.AMP, __init__ never gets
+    # run.  So we can't access self.factory.
+    # def __init__(self):
+    #     amp.AMP.__init__(self)
+    #     self.users = set()
 
     def send(self, message, sender):
         """Send message to this client from sender"""
         print "send", message, sender
+        chatclient.receive_chat_message(message, sender)
         return {}
     commands.Send.responder(send)
 
     def add_user(self, user):
         print "add_user", user
+        if not hasattr(self, "users"):
+            self.users = set()
         self.users.add(user)
+        chatclient.update_user_store(self.users)
         return {}
     commands.AddUser.responder(add_user)
 
     def del_user(self, user):
         print "del_user", user
         self.users.discard(user)
+        chatclient.update_user_store(self.users)
         return {}
     commands.DelUser.responder(add_user)
 
@@ -50,6 +57,10 @@ class ChatClientProtocol(amp.AMP):
 
 class ChatClientFactory(_InstanceFactory):
     protocol = ChatClientProtocol
+
+    def __init__(self, reactor, instance, deferred, chat_client):
+        _InstanceFactory.__init__(self, reactor, instance, deferred)
+        self.chat_client = chat_client
 
     def __repr__(self):
         return "<ChatClient factory: %r>" % (self.instance, )
@@ -92,6 +103,15 @@ class ChatClient(object):
         self.chat_entry.connect("key-press-event", self.cb_keypress)
         self.chat_entry.show()
 
+        self.user_store = gtk.ListStore(str)
+        self.user_list.set_model(self.user_store)
+        selection = self.user_list.get_selection()
+        selection.set_select_function(self.cb_user_list_select, None)
+        column = gtk.TreeViewColumn("User Name", gtk.CellRendererText(),
+          text=0)
+        self.user_list.append_column(column)
+        self.user_list.show()
+
     def create_ui(self):
         action_group = gtk.ActionGroup("MasterActions")
         actions = [
@@ -118,8 +138,8 @@ class ChatClient(object):
         self.username = username
         self.password = password
         deferred = defer.Deferred()
-        self.factory = ChatClientFactory(reactor, ChatClientProtocol(), 
-          deferred)
+        self.factory = ChatClientFactory(reactor, 
+          ChatClientProtocol(), deferred, self)
         connector = reactor.connectTCP(self.host, self.port, self.factory)
         deferred.addCallback(self.connected_to_server)
         deferred.addErrback(self.failure)
@@ -159,7 +179,36 @@ class ChatClient(object):
                 deferred.addErrback(self.failure)
                 self.chat_entry.set_text("")
 
+    # TODO Save the marked user for private chat
+    def cb_user_list_select(self, path, unused):
+        index = path[0]
+        row = self.user_store[index, 0]
+        name = row[0]
+        return False
+
+    def update_user_store(self, usernames):
+        sorted_usernames = sorted(usernames)
+        length = len(self.user_store)
+        for ii, username in enumerate(sorted_usernames):
+            if ii < length:
+                self.user_store[ii, 0] = (username,)
+            else:
+                self.user_store.append((username,))
+        length = len(sorted_usernames)
+        while len(self.user_store) > length:
+            del self.user_store[length]
+
+
+    def receive_chat_message(self, message, sender):
+        buf = self.chat_view.get_buffer()
+        message = sender + ": " + message.strip() + "\n"
+        it = buf.get_end_iter()
+        buf.insert(it, message)
+        self.chat_view.scroll_to_mark(buf.get_insert(), 0)
+
 
 if __name__ == "__main__":
+    # XXX Protocol can't find its factory to find the ChatClient, so put it 
+    # in a global for now.
     chatclient = ChatClient()
     reactor.run()

@@ -26,10 +26,9 @@ class Options(usage.Options):
 
 
 class ChatProtocol(amp.AMP):
-    # XXX Why are we getting a variable number of args here?
-    def __init__(self, *args):
-        print "ChatProtocol.__init__", self, args
-        super(ChatProtocol, self).__init__()
+    # XXX Not actually called
+    def __init__(self):
+        amp.AMP.__init__(self)
         self.username = None
 
     def login(self, username, password):
