@@ -17,8 +17,6 @@ import commands
 default_host = "localhost"
 
 
-
-
 class ChatClientProtocol(amp.AMP):
     # XXX Due to metaclass weirdness with amp.AMP, __init__ never gets
     # run.  So we can't access self.factory.
@@ -111,6 +109,8 @@ class ChatClient(object):
           text=0)
         self.user_list.append_column(column)
         self.user_list.show()
+        self.selected_name = None
+
 
     def create_ui(self):
         action_group = gtk.ActionGroup("MasterActions")
@@ -173,18 +173,25 @@ class ChatClient(object):
         if event.keyval == ENTER_KEY:
             text = self.chat_entry.get_text()
             if text and self.protocol is not None:
-                # TODO If a username is highlighted, SendToUser
-                deferred = self.protocol.callRemote(commands.SendToAll, 
-                  message=text)
+                if self.selected_name is not None:
+                    print "sending to", self.selected_name
+                    deferred = self.protocol.callRemote(commands.SendToUser,
+                      message=text, username=self.selected_name)
+                else:
+                    deferred = self.protocol.callRemote(commands.SendToAll, 
+                      message=text)
                 deferred.addErrback(self.failure)
                 self.chat_entry.set_text("")
 
-    # TODO Save the marked user for private chat
     def cb_user_list_select(self, path, unused):
         index = path[0]
         row = self.user_store[index, 0]
         name = row[0]
-        return False
+        if self.selected_name == name:
+            self.selected_name = None
+        else:
+            self.selected_name = name
+        return True
 
     def update_user_store(self, usernames):
         sorted_usernames = sorted(usernames)
