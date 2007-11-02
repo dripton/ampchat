@@ -66,6 +66,10 @@ class ChatProtocol(amp.AMP):
         if protocol:
             protocol.callRemote(commands.Send, message=message, 
               sender=self.username)
+            # Also show it to the sender
+            if username != self.username:
+                self.callRemote(commands.Send, message=message,
+                  sender=self.username)
         return {}
     commands.SendToUser.responder(send_to_user)
 
