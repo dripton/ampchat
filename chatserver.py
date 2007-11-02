@@ -32,7 +32,6 @@ class ChatProtocol(amp.AMP):
 
     def login(self, username, password):
         """Attempt to login."""
-        print "ChatProtocol.login", username, password
         creds = credentials.UsernamePassword(username, password)
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
@@ -43,7 +42,6 @@ class ChatProtocol(amp.AMP):
     commands.Login.responder(login)
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
-        print "login_succeeded", avatar_interface, avatar, logout
         name = avatar.name
         self.username = name
         self.factory.username_to_protocol[name] = self
@@ -56,11 +54,9 @@ class ChatProtocol(amp.AMP):
             self.callRemote(commands.AddUser, user=username)
 
     def login_failed(self, failure):
-        print "ChatProtocol.login_failed", failure
         self.callRemote(commands.LoggedIn, ok=False)
 
     def send_to_user(self, message, username):
-        print "send_to_user", message, username
         protocol = self.factory.username_to_protocol.get(username)
         if protocol:
             protocol.callRemote(commands.Send, message=message, 
@@ -73,7 +69,6 @@ class ChatProtocol(amp.AMP):
     commands.SendToUser.responder(send_to_user)
 
     def send_to_all(self, message):
-        print "send_to_all", message
         for protocol in self.factory.username_to_protocol.itervalues():
             protocol.callRemote(commands.Send, message=message,
               sender=self.username)

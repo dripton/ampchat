@@ -26,13 +26,11 @@ class ChatClientProtocol(amp.AMP):
 
     def send(self, message, sender):
         """Send message to this client from sender"""
-        print "send", message, sender
         chatclient.receive_chat_message(message, sender)
         return {}
     commands.Send.responder(send)
 
     def add_user(self, user):
-        print "add_user", user
         if not hasattr(self, "users"):
             self.users = set()
         self.users.add(user)
@@ -41,14 +39,12 @@ class ChatClientProtocol(amp.AMP):
     commands.AddUser.responder(add_user)
 
     def del_user(self, user):
-        print "del_user", user
         self.users.discard(user)
         chatclient.update_user_store(self.users)
         return {}
     commands.DelUser.responder(del_user)
 
     def logged_in(self, ok):
-        print "logged_in", ok
         return {}
     commands.LoggedIn.responder(logged_in)
 
@@ -134,7 +130,6 @@ class ChatClient(object):
         connect_dialog = ConnectDialog(self.connect_to_server)
 
     def connect_to_server(self, host, port, username, password):
-        print("connect_to_server")
         self.host = host
         self.port = port
         self.username = username
@@ -148,18 +143,12 @@ class ChatClient(object):
         return deferred
 
     def connected_to_server(self, protocol):
-        print("connected_to_server", protocol)
         self.protocol = protocol
         deferred = protocol.callRemote(commands.Login, username=self.username, 
           password=self.password)
-        deferred.addCallback(self.connect_finished)
         deferred.addErrback(self.failure)
 
-    def connect_finished(self, result):
-        print("connect_finished", result)
-
     def failure(self, error):
-        print("failure", error)
         messagedialog = gtk.MessageDialog(parent=self.chat_window, 
           type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_OK,
           message_format="Could not connect to %s:%s\n%s" % (self.host, 
@@ -176,7 +165,6 @@ class ChatClient(object):
             text = self.chat_entry.get_text()
             if text and self.protocol is not None:
                 if self.selected_name is not None:
-                    print "sending to", self.selected_name
                     deferred = self.protocol.callRemote(commands.SendToUser,
                       message=text, username=self.selected_name)
                 else:
@@ -186,7 +174,6 @@ class ChatClient(object):
                 self.chat_entry.set_text("")
 
     def cb_user_list_select(self, selection, model, path, is_selected, unused):
-        print "cb_user_list_select", selection, model, path, is_selected
         index = path[0]
         row = self.user_store[index, 0]
         name = row[0]
