@@ -7,10 +7,6 @@ class Login(amp.Command):
     arguments = [("username", amp.String()), ("password", amp.String())]
     response = []
     errors = {UnauthorizedLogin: "UnauthorizedLogin"}
-    # If we set requiresAnswer = False, then the client-side callRemote
-    # returns None instead of a deferred, and we can't attach callbacks.
-    # So be sure to return an empty dict instead.
-    # TODO doc patch for twisted
 
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
