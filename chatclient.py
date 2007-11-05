@@ -44,6 +44,17 @@ class ChatClientProtocol(amp.AMP):
     commands.DelUser.responder(del_user)
 
     def logged_in(self, ok):
+        if ok:
+            chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
+              chatclient.username)
+        else:
+            chatclient.chat_window.set_title("AMP Chat -- not logged in")
+            message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
+              type=gtk.MESSAGE_ERROR, 
+              buttons=gtk.BUTTONS_CLOSE,
+              message_format="Bad username or password")
+            message_dialog.run()
+            message_dialog.destroy()
         return {}
     commands.LoggedIn.responder(logged_in)
 
@@ -90,7 +101,7 @@ class ChatClient(object):
 
         self.chat_window.set_default_size(200, 100)
         self.chat_window.connect("destroy", self.stop)
-        self.chat_window.set_title("AMP Chat Demo")
+        self.chat_window.set_title("AMP Chat -- not logged in")
         self.chat_window.show()
 
         self.chat_entry.connect("key-press-event", self.cb_keypress)
