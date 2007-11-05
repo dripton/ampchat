@@ -49,9 +49,10 @@ class ChatProtocol(amp.AMP):
         # Tell all users about this user
         for protocol in self.factory.username_to_protocol.itervalues():
             protocol.callRemote(commands.AddUser, user=name)
-        # Tell this user about all users
+        # Tell this user about all other users
         for username in self.factory.username_to_protocol.iterkeys():
-            self.callRemote(commands.AddUser, user=username)
+            if username != name:
+                self.callRemote(commands.AddUser, user=username)
 
     def login_failed(self, failure):
         self.callRemote(commands.LoggedIn, ok=False)
