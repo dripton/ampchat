@@ -9,7 +9,6 @@ from twisted.python import usage
 from twisted.cred.checkers import FilePasswordDB
 from twisted.cred.portal import Portal
 from twisted.cred import credentials
-from twisted.cred.error import UnauthorizedLogin
 
 from Realm import Realm, IAvatar
 import commands
@@ -77,7 +76,10 @@ class ChatProtocol(amp.AMP):
     commands.SendToAll.responder(send_to_all)
 
     def connectionLost(self, unused):
-        del self.factory.username_to_protocol[self.username]
+        try:
+            del self.factory.username_to_protocol[self.username]
+        except KeyError:
+            pass
         for protocol in self.factory.username_to_protocol.itervalues():
             protocol.callRemote(commands.DelUser, user=self.username)
 

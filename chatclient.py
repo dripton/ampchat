@@ -6,7 +6,6 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import _InstanceFactory
 from twisted.protocols import amp
 from twisted.cred import credentials
-from twisted.cred.error import UnauthorizedLogin
 import gtk
 import gtk.glade
 

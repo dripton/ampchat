@@ -1,12 +1,10 @@
 from twisted.protocols import amp
-from twisted.cred.error import UnauthorizedLogin
 
 # commands to server side
 
 class Login(amp.Command):
     arguments = [("username", amp.String()), ("password", amp.String())]
     response = []
-    errors = {UnauthorizedLogin: "UnauthorizedLogin"}
 
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
