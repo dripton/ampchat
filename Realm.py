@@ -18,7 +18,7 @@ class Realm(object):
     implements(IRealm)
 
     def requestAvatar(self, avatar_id, mind, *interfaces):
-        if IAvatar in  interfaces:
+        if IAvatar in interfaces:
             avatar = Avatar(avatar_id)
             return (IAvatar, avatar, avatar.logout)
         else:
