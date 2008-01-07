@@ -5,7 +5,6 @@ gtk2reactor.install()
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import _InstanceFactory
 from twisted.protocols import amp
-from twisted.cred import credentials
 import gtk
 import gtk.glade
 
