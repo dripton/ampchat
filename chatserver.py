@@ -29,6 +29,7 @@ class ChatProtocol(amp.AMP):
         amp.AMP.__init__(self)
         self.username = None
 
+    @commands.Login.responder
     def login(self, username, password):
         """Attempt to login."""
         creds = credentials.UsernamePassword(username, password)
@@ -38,7 +39,6 @@ class ChatProtocol(amp.AMP):
         # We need to wait for the deferred to fire, so we can't return an
         # answer yet.
         return {} 
-    commands.Login.responder(login)
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
         name = avatar.name
@@ -56,6 +56,7 @@ class ChatProtocol(amp.AMP):
     def login_failed(self, failure):
         self.callRemote(commands.LoggedIn, ok=False)
 
+    @commands.SendToUser.responder
     def send_to_user(self, message, username):
         protocol = self.factory.username_to_protocol.get(username)
         if protocol:
@@ -66,14 +67,13 @@ class ChatProtocol(amp.AMP):
                 self.callRemote(commands.Send, message=message,
                   sender=self.username)
         return {}
-    commands.SendToUser.responder(send_to_user)
 
+    @commands.SendToAll.responder
     def send_to_all(self, message):
         for protocol in self.factory.username_to_protocol.itervalues():
             protocol.callRemote(commands.Send, message=message,
               sender=self.username)
         return {}
-    commands.SendToAll.responder(send_to_all)
 
     def connectionLost(self, unused):
         try:

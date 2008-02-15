@@ -22,26 +22,27 @@ class ChatClientProtocol(amp.AMP):
     #     amp.AMP.__init__(self)
     #     self.users = set()
 
+    @commands.Send.responder
     def send(self, message, sender):
         """Send message to this client from sender"""
         chatclient.receive_chat_message(message, sender)
         return {}
-    commands.Send.responder(send)
 
+    @commands.AddUser.responder
     def add_user(self, user):
         if not hasattr(self, "users"):
             self.users = set()
         self.users.add(user)
         chatclient.update_user_store(self.users)
         return {}
-    commands.AddUser.responder(add_user)
 
+    @commands.DelUser.responder
     def del_user(self, user):
         self.users.discard(user)
         chatclient.update_user_store(self.users)
         return {}
-    commands.DelUser.responder(del_user)
 
+    @commands.LoggedIn.responder
     def logged_in(self, ok):
         if ok:
             chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
@@ -55,7 +56,6 @@ class ChatClientProtocol(amp.AMP):
             message_dialog.run()
             message_dialog.destroy()
         return {}
-    commands.LoggedIn.responder(logged_in)
 
 
 class ChatClientFactory(_InstanceFactory):
