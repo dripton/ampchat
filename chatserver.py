@@ -36,15 +36,12 @@ class ChatProtocol(amp.AMP):
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
         deferred.addErrback(self.login_failed)
-        # We need to wait for the deferred to fire, so we can't return an
-        # answer yet.
-        return {} 
+        return deferred
 
     def login_succeeded(self, (avatar_interface, avatar, logout)):
         name = avatar.name
         self.username = name
         self.factory.username_to_protocol[name] = self
-        self.callRemote(commands.LoggedIn, ok=True)
         # Tell all users about this user
         for protocol in self.factory.username_to_protocol.itervalues():
             protocol.callRemote(commands.AddUser, user=name)
@@ -52,9 +49,10 @@ class ChatProtocol(amp.AMP):
         for username in self.factory.username_to_protocol:
             if username != name:
                 self.callRemote(commands.AddUser, user=username)
+        return {"ok": True}
 
     def login_failed(self, failure):
-        self.callRemote(commands.LoggedIn, ok=False)
+        return {"ok": False}
 
     @commands.SendToUser.responder
     def send_to_user(self, message, username):

@@ -4,7 +4,7 @@ from twisted.protocols import amp
 
 class Login(amp.Command):
     arguments = [("username", amp.String()), ("password", amp.String())]
-    response = []
+    response = [("ok", amp.Boolean())]
 
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
@@ -27,8 +27,4 @@ class AddUser(amp.Command):
 
 class DelUser(amp.Command):
     arguments = [("user", amp.String())]
-    response = []
-
-class LoggedIn(amp.Command):
-    arguments = [("ok", amp.Boolean())]
     response = []

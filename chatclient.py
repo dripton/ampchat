@@ -42,21 +42,6 @@ class ChatClientProtocol(amp.AMP):
         chatclient.update_user_store(self.users)
         return {}
 
-    @commands.LoggedIn.responder
-    def logged_in(self, ok):
-        if ok:
-            chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
-              chatclient.username)
-        else:
-            chatclient.chat_window.set_title("AMP Chat -- not logged in")
-            message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
-              type=gtk.MESSAGE_ERROR, 
-              buttons=gtk.BUTTONS_CLOSE,
-              message_format="Bad username or password")
-            message_dialog.run()
-            message_dialog.destroy()
-        return {}
-
 
 class ChatClientFactory(_InstanceFactory):
     protocol = ChatClientProtocol
@@ -155,7 +140,31 @@ class ChatClient(object):
         self.protocol = protocol
         deferred = protocol.callRemote(commands.Login, username=self.username, 
           password=self.password)
-        deferred.addErrback(self.failure)
+        deferred.addCallback(self.cb_login)
+        deferred.addErrback(self.login_failure)
+
+    def cb_login(self, response):
+        ok = response["ok"]
+        if ok:
+            chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
+              chatclient.username)
+        else:
+            chatclient.chat_window.set_title("AMP Chat -- not logged in")
+            message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
+              type=gtk.MESSAGE_ERROR, 
+              buttons=gtk.BUTTONS_CLOSE,
+              message_format="Bad username or password")
+            message_dialog.run()
+            message_dialog.destroy()
+
+    def login_failure(self, error):
+        chatclient.chat_window.set_title("AMP Chat -- not logged in")
+        message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
+          type=gtk.MESSAGE_ERROR, 
+          buttons=gtk.BUTTONS_CLOSE,
+          message_format="Bad username or password")
+        message_dialog.run()
+        message_dialog.destroy()
 
     def failure(self, error):
         messagedialog = gtk.MessageDialog(parent=self.chat_window, 
