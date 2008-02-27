@@ -24,10 +24,6 @@ class Options(usage.Options):
 
 
 class ChatProtocol(amp.AMP):
-    # XXX Not actually called
-    def __init__(self):
-        amp.AMP.__init__(self)
-        self.username = None
 
     @commands.Login.responder
     def login(self, username, password):

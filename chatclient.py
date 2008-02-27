@@ -16,11 +16,6 @@ default_host = "localhost"
 
 
 class ChatClientProtocol(amp.AMP):
-    # XXX Due to metaclass weirdness with amp.AMP, __init__ never gets
-    # run.  So we can't access self.factory.
-    # def __init__(self):
-    #     amp.AMP.__init__(self)
-    #     self.users = set()
 
     @commands.Send.responder
     def send(self, message, sender):
@@ -46,9 +41,8 @@ class ChatClientProtocol(amp.AMP):
 class ChatClientFactory(_InstanceFactory):
     protocol = ChatClientProtocol
 
-    def __init__(self, reactor, instance, deferred, chat_client):
+    def __init__(self, reactor, instance, deferred):
         _InstanceFactory.__init__(self, reactor, instance, deferred)
-        self.chat_client = chat_client
 
     def __repr__(self):
         return "<ChatClient factory: %r>" % (self.instance, )
@@ -129,9 +123,10 @@ class ChatClient(object):
         self.username = username
         self.password = password
         deferred = defer.Deferred()
-        self.factory = ChatClientFactory(reactor, 
-          ChatClientProtocol(), deferred, self)
-        connector = reactor.connectTCP(self.host, self.port, self.factory)
+        if self.protocol is not None:
+            self.protocol.transport.loseConnection()
+        factory = ChatClientFactory(reactor, ChatClientProtocol(), deferred)
+        connector = reactor.connectTCP(self.host, self.port, factory)
         deferred.addCallback(self.connected_to_server)
         deferred.addErrback(self.failure)
         return deferred
