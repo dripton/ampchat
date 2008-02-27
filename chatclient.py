@@ -141,28 +141,18 @@ class ChatClient(object):
         deferred = protocol.callRemote(commands.Login, username=self.username, 
           password=self.password)
         deferred.addCallback(self.cb_login)
-        deferred.addErrback(self.login_failure)
+        deferred.addErrback(self.eb_login)
 
     def cb_login(self, response):
-        ok = response["ok"]
-        if ok:
-            chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
-              chatclient.username)
-        else:
-            chatclient.chat_window.set_title("AMP Chat -- not logged in")
-            message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
-              type=gtk.MESSAGE_ERROR, 
-              buttons=gtk.BUTTONS_CLOSE,
-              message_format="Bad username or password")
-            message_dialog.run()
-            message_dialog.destroy()
+        chatclient.chat_window.set_title("AMP Chat -- logged in as %s" % 
+          chatclient.username)
 
-    def login_failure(self, error):
+    def eb_login(self, error):
         chatclient.chat_window.set_title("AMP Chat -- not logged in")
         message_dialog = gtk.MessageDialog(parent=chatclient.chat_window,
           type=gtk.MESSAGE_ERROR, 
           buttons=gtk.BUTTONS_CLOSE,
-          message_format="Bad username or password")
+          message_format=error.getErrorMessage())
         message_dialog.run()
         message_dialog.destroy()
 

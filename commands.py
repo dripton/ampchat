@@ -1,10 +1,15 @@
 from twisted.protocols import amp
 
+# Exceptions
+class LoginError(Exception):
+    pass
 # commands to server side
+
 
 class Login(amp.Command):
     arguments = [("username", amp.String()), ("password", amp.String())]
-    response = [("ok", amp.Boolean())]
+    response = []
+    errors = {LoginError: "LoginError"}
 
 class SendToAll(amp.Command):
     arguments = [("message", amp.String())]
@@ -28,3 +33,5 @@ class AddUser(amp.Command):
 class DelUser(amp.Command):
     arguments = [("user", amp.String())]
     response = []
+
+

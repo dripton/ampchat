@@ -32,6 +32,8 @@ class ChatProtocol(amp.AMP):
     @commands.Login.responder
     def login(self, username, password):
         """Attempt to login."""
+        if username in self.factory.username_to_protocol:
+            raise commands.LoginError("User '%s' already logged in" % username)
         creds = credentials.UsernamePassword(username, password)
         deferred = self.factory.portal.login(creds, None, IAvatar)
         deferred.addCallback(self.login_succeeded)
@@ -49,10 +51,10 @@ class ChatProtocol(amp.AMP):
         for username in self.factory.username_to_protocol:
             if username != name:
                 self.callRemote(commands.AddUser, user=username)
-        return {"ok": True}
+        return {}
 
     def login_failed(self, failure):
-        return {"ok": False}
+        raise commands.LoginError("Incorrect username or password")
 
     @commands.SendToUser.responder
     def send_to_user(self, message, username):
