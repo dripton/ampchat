@@ -52,16 +52,17 @@ class ChatProtocol(amp.AMP):
     def login_failed(self, failure):
         raise commands.LoginError("Incorrect username or password")
 
-    @commands.SendToUser.responder
-    def send_to_user(self, message, username):
-        protocol = self.factory.username_to_protocol.get(username)
-        if protocol:
-            protocol.callRemote(commands.Send, message=message, 
-              sender=self.username)
-            # Also show it to the sender
-            if username != self.username:
-                self.callRemote(commands.Send, message=message,
+    @commands.SendToUsers.responder
+    def send_to_users(self, message, usernames):
+        for username in usernames:
+            protocol = self.factory.username_to_protocol.get(username)
+            if protocol:
+                protocol.callRemote(commands.Send, message=message, 
                   sender=self.username)
+        # Also show it to the sender
+        if self.username not in usernames:
+            self.callRemote(commands.Send, message=message,
+              sender=self.username)
         return {}
 
     @commands.SendToAll.responder

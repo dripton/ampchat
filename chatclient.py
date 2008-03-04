@@ -88,7 +88,7 @@ class ChatClient(object):
         self.user_store = gtk.ListStore(str)
         self.user_list.set_model(self.user_store)
         selection = self.user_list.get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(gtk.SELECTION_MULTIPLE)
         selection.set_select_function(self.cb_user_list_select, data=None,
           full=True)
         column = gtk.TreeViewColumn("User Name", gtk.CellRendererText(),
@@ -168,8 +168,8 @@ class ChatClient(object):
             text = self.chat_entry.get_text()
             if text and self.protocol is not None:
                 if self.selected_name is not None:
-                    deferred = self.protocol.callRemote(commands.SendToUser,
-                      message=text, username=self.selected_name)
+                    deferred = self.protocol.callRemote(commands.SendToUsers,
+                      message=text, usernames=[self.selected_name])
                 else:
                     deferred = self.protocol.callRemote(commands.SendToAll, 
                       message=text)
