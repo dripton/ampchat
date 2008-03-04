@@ -95,7 +95,7 @@ class ChatClient(object):
           text=0)
         self.user_list.append_column(column)
         self.user_list.show()
-        self.selected_name = None
+        self.selected_names = set()
 
 
     def create_ui(self):
@@ -167,9 +167,9 @@ class ChatClient(object):
         if event.keyval == ENTER_KEY:
             text = self.chat_entry.get_text()
             if text and self.protocol is not None:
-                if self.selected_name is not None:
+                if self.selected_names:
                     deferred = self.protocol.callRemote(commands.SendToUsers,
-                      message=text, usernames=[self.selected_name])
+                      message=text, usernames=self.selected_names)
                 else:
                     deferred = self.protocol.callRemote(commands.SendToAll, 
                       message=text)
@@ -180,10 +180,10 @@ class ChatClient(object):
         index = path[0]
         row = self.user_store[index, 0]
         name = row[0]
-        if self.selected_name == name:
-            self.selected_name = None
+        if is_selected:
+            self.selected_names.remove(name)
         else:
-            self.selected_name = name
+            self.selected_names.add(name)
         return True
 
     def update_user_store(self, usernames):
